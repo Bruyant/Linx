@@ -458,6 +458,9 @@ class Numlockin_Window(QMainWindow, Ui_MainWindow):
                 self.data[:, i+2] = self.temp[:, self.colref[i]-1]-mean(self.temp[:, self.colref[i]-1])
                 self.colref[i] = i+2
             #self.freq[i] = FindRefFreq(data[:, self.colref[i]]),self.sample_rate)
+                #TODO fully test the next line
+                # find the reference frequency
+                self.freq[i] = FindRefFreq(self.data[:, self.colref[i]],self.sample_rate)
                             
             # Les len(self.coldata)    colonnes suivantes contiennent les données        
             self.coldata = zeros(len(self.coldatai))
@@ -467,6 +470,8 @@ class Numlockin_Window(QMainWindow, Ui_MainWindow):
             self.phasemin = zeros(len(self.coldata))
             self.phasemini = zeros(len(self.coldata))
         
+            
+            #TODO Calculation of the field
             # Enfin la dernière colonne contient le champ intégré
             self.data[1:, 2+len(self.coldata)+len(self.colref)] = cumtrapz(self.data[:, 1], self.data[:, 0])
             self.data[1:, 2+len(self.coldata)+len(self.colref)] = abs(self.data[1:, 2+len(self.coldata)+len(self.colref)])
@@ -503,9 +508,11 @@ class Numlockin_Window(QMainWindow, Ui_MainWindow):
         
             
             #cProfile.runctx('self.data_analyze()', globals(), locals(), 'essai.lprof')
+            #TODO put these functions into the lib            
             self.data_analyze()
             self.plot_analyzed()
             self.plot_raw()
+            
             if B_max<0.5:
                 self.label_23.setText('Low field detected, check dBdt column or PU area.')
             else:
