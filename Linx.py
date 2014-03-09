@@ -30,6 +30,7 @@ from scipy.fftpack import fftfreq
 
 from scipy.signal import buttord, ellipord, cheb1ord, ellip, cheby1, filtfilt
 from modified_filter import butter # error free scipy butter
+from LibLinx import FindRefFreq 
 
 import PyQt4.Qwt5 as Qwt 
 from PyQt4.QtCore import Qt,  SIGNAL
@@ -456,50 +457,6 @@ class Numlockin_Window(QMainWindow, Ui_MainWindow):
             for i in range(0, len(self.colref)):
                 self.data[:, i+2] = self.temp[:, self.colref[i]-1]-mean(self.temp[:, self.colref[i]-1])
                 self.colref[i] = i+2
-            
-                # On calcule les fréquences de modulation de chaque lock-in
-                # On approche la valeur avec une FFT
-                data_fourier = abs(real(fft(self.data[:, i+2])))
-                freq = fftfreq(len(self.data[:, i+2]), 1/self.sample_rate)
-                
-                posj = argmax(data_fourier[0:round(len(data_fourier)/2)+1])
-                
-                self.freq[i] = freq[posj]
-                
-                # On effectue une DFT pour affiner le calcul
-                deltaf = (freq[2]-freq[1])/1000
-                fourier_lenght = 16084
-                
-                F = [0]*3
-                expon = -2j*pi*self.data[0:fourier_lenght, 0]
-                
-                F[1] = abs(trapz(self.data[0:fourier_lenght, self.colref[i]]*exp(expon*self.freq[i]), self.data[0:fourier_lenght, 0]))
-                F[2] = abs(trapz(self.data[0:fourier_lenght, self.colref[i]]*exp(expon*(self.freq[i]+deltaf)), self.data[0:fourier_lenght, 0]))
-                F[0] = abs(trapz(self.data[0:fourier_lenght, self.colref[i]]*exp(expon*(self.freq[i]-deltaf)), self.data[0:fourier_lenght, 0]))
-                
-                if F[2]>F[1]:
-                    essaimax = F[1]
-                    
-                    while abs(deltaf)>0.0002:
-                        F[2] = abs(trapz(self.data[0:fourier_lenght, self.colref[i]]*exp(expon*(self.freq[i]+deltaf)), self.data[0:fourier_lenght, 0]))
-                        if F[2]>essaimax:
-                            essaimax = F[2]
-                            self.freq[i] = self.freq[i]+deltaf
-                        else:
-                            deltaf = -deltaf/10
-                elif F[0]>F[1]:
-                    deltaf = -deltaf
-                    essaimax = F[1]
-                    
-                    while abs(deltaf)>0.0002:
-                        F[0] = abs(trapz(self.data[0:fourier_lenght, self.colref[i]]*exp(expon*(self.freq[i]+deltaf)), self.data[0:fourier_lenght, 0]))
-                        if F[0]>essaimax:
-                            essaimax = F[0]
-                            self.freq[i] = self.freq[i]+deltaf
-                        else:
-                            deltaf = -deltaf/10
-
-            # TODO test the next line          
             #self.freq[i] = FindRefFreq(data[:, self.colref[i]]),self.sample_rate)
                             
             # Les len(self.coldata)    colonnes suivantes contiennent les données        
