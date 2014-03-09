@@ -478,7 +478,7 @@ class Numlockin_Window(QMainWindow, Ui_MainWindow):
                 F[0] = abs(trapz(self.data[0:fourier_lenght, self.colref[i]]*exp(expon*(self.freq[i]-deltaf)), self.data[0:fourier_lenght, 0]))
                 
                 if F[2]>F[1]:
-                    esssaimax = F[1]
+                    essaimax = F[1]
                     
                     while abs(deltaf)>0.0002:
                         F[2] = abs(trapz(self.data[0:fourier_lenght, self.colref[i]]*exp(expon*(self.freq[i]+deltaf)), self.data[0:fourier_lenght, 0]))
