@@ -499,6 +499,9 @@ class Numlockin_Window(QMainWindow, Ui_MainWindow):
                         else:
                             deltaf = -deltaf/10
 
+            # TODO test the next line          
+            #self.freq[i] = FindRefFreq(data[:, self.colref[i]]),self.sample_rate)
+                            
             # Les len(self.coldata)    colonnes suivantes contiennent les données        
             self.coldata = zeros(len(self.coldatai))
             for i in range(0, len(self.coldata)):
