@@ -8,8 +8,7 @@ Librairie de traitement du signal du lock in numerique
 Created by N. Bruyant 2014-03-08
 
 """
-from scipy import zeros, cos, pi, sin, fft, real, mean, optimize,
-fromfile, floor, exp, argmax, sqrt, diff, float32
+from scipy import zeros, cos, pi, sin, fft, real, mean, optimize,fromfile, floor, exp, argmax, sqrt, diff, float32
 from numpy import arange, linspace
 from scipy.integrate import trapz, cumtrapz
 from scipy.fftpack import fftfreq
@@ -34,11 +33,11 @@ def FindRefFreq(Data, SampleRate):
 
     #calculate the time vector
     #TODO Verify the coherence with the stored one
-    time = arange(0, len(data))/SampleRate
+    time = arange(0, len(Data))/SampleRate
 
     # On calcule les fréquences de modulation de chaque lock-in
     # On approche la valeur avec une FFT
-    Data_fourier = abs(real(fft(Data)))
+    data_fourier = abs(real(fft(Data)))
     freqs = fftfreq(len(Data), 1/SampleRate)
 
     # find maximum frequency
