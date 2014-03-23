@@ -17,6 +17,9 @@ import logging
 #configure logging
 logging.basicConfig(filename='LibLinx.log', level=logging.DEBUG)
 
+#setup tolerences
+deltaf_Tol=0.0002
+
 def FindRefFreq(Data, SampleRate):
     """
      
@@ -66,7 +69,7 @@ def FindRefFreq(Data, SampleRate):
     #optimize the frequency to maximize the DFT
     if F[2] > F[1]:
         essaimax = F[1]
-        while abs(deltaf) > 0.0002:
+        while abs(deltaf) > deltaf_Tol:
             F[2] = abs(trapz(Data[0:fourier_lenght]*exp(expon*(freq+deltaf)),
                        dx=1/SampleRate))
             if F[2] > essaimax:
@@ -78,7 +81,7 @@ def FindRefFreq(Data, SampleRate):
         deltaf = -deltaf
         essaimax = F[1]
 
-        while abs(deltaf) > 0.0002:
+        while abs(deltaf) > deltaf_Tol:
             F[0] = abs(trapz(Data[0:fourier_lenght]*exp(expon*(freq+deltaf)),
                        dx=1/SampleRate))
             if F[0] > essaimax:
@@ -87,7 +90,7 @@ def FindRefFreq(Data, SampleRate):
             else:
                 deltaf = -deltaf/10
     else:
-        logging.debug("You are lucky F[0]>F[1]>F[2] and deltaf is %f", deltaf)
+        logging.debug("strange case where F[0]>F[1]>F[2] and deltaf is %f", deltaf)
 
     logging.info('Detected frequency is %f Hz' , freq)
     return freq
