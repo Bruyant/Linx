@@ -12,6 +12,7 @@ from scipy import zeros, cos, pi, sin, fft, real, mean, optimize, fromfile, floo
 from numpy import arange, linspace
 from scipy.integrate import trapz, cumtrapz
 from scipy.fftpack import fftfreq
+from scipy.signal import resample
 import logging
 
 # configure logging
@@ -49,15 +50,29 @@ def FindRefFreq(Data, SampleRate):
     freq = freqs[posj]
 
     # Determine the freq spacing of the FFT to take 1/1000 as a deltaf
-    deltaf = (freqs[2] - freqs[1]) / 1000    
+    deltaf = (freqs[2] - freqs[1]) / 1000
 
     # Select only first part of the signal
-    # TODO calculate the good forrier length with respect to the detected freq
-    fourier_lenght = 16084 / 2   
+    # TODO calculate the good fourier length with respect to the detected freq
+    # Downsampling to 2*Shannon freq
+#FIXME
+#    downsampling= round(len(data_fourier)/posj/4)
+#    logging.debug("downsampling %i",downsampling)
+#    # precision visée 1E-6    ->  posj*1E_6*fourier_lenght=1/2
+#    fourier_lenght = min(len(Data),1/(2*posj*1E-9)*downsampling)
+#    logging.debug("fourier_lenght %i", fourier_lenght)
+    fourier_lenght = 16000
 
+    #cut signal
     Data = Data[0:fourier_lenght]
     time = time[0:fourier_lenght]
 
+    #downsample signal
+#    Data = resample(Data,downsampling)
+#    time = resample(time,downsampling)
+#    SampleRate=SampleRate/downsampling
+
+    #initate error vector
     F = zeros(3)
     # Calculate prefactor
     expon = -2j * pi * time
@@ -100,54 +115,52 @@ def FindRefFreq(Data, SampleRate):
     return freq
 
 
-def data_analyze():
-    ''' 
-
-    Treat raw data
+def data_analyze(data, freq):
     '''
-    self.sig_out = zeros((len(self.data[:, 2]), len(self.coldata) * 2))
-    phase_ref = zeros(len(self.data[:, 2]))
-    antiphase_ref = zeros(len(self.data[:, 2]))
-    self.amplitude = zeros(len(self.coldata))
-    self.zp = int(self.lineEdit_21.text())
 
-    for j in range(0, len(self.coldata)):
-        if len(self.colref) == 1:
-            posref = self.colref
-            thefreq = self.freq[0]
+    Treat raw data with respect to the carrier frequency
+    '''
+    sig_out = zeros((len(data[:, 2]), len(coldata) * 2))
+    phase_ref = zeros(len(data[:, 2]))
+    antiphase_ref = zeros(len(data[:, 2]))
+    amplitude = zeros(len(coldata))
+    zp = int(lineEdit_21.text())
+
+    for j in range(0, len(coldata)):
+        if len(colref) == 1:
+            posref = colref
+            thefreq = freq[0]
         else:
-            posref = self.colref[j]
-            thefreq = self.freq[j]
+            posref = colref[j]
+            thefreq = freq[j]
 
         # Phase detector
-        self.amplitude[j] = (max(self.data[1:10000, int(posref)]) - min(self.data[1:10000, int(posref)])) / 2
-        phase_ref[:] = self.amplitude[j] * cos(2 * pi * thefreq * self.data[:, 0])
+        amplitude[j] = (max(data[1:10000, int(posref)]) - min(data[1:10000, int(posref)])) / 2
+        phase_ref[:] = amplitude[j] * cos(2 * pi * thefreq * data[:, 0])
 
         # Phase detector using sinusoidal fit
-        fitfunc = lambda p, x: self.amplitude[j] * cos(2 * pi * thefreq * x + p[0])
+        fitfunc = lambda p, x: amplitude[j] * cos(2 * pi * thefreq * x + p[0])
         errfunc = lambda p, x, y: fitfunc(p, x) - y
         p0 = [0]
-        fit_le = int(self.zp * round(self.sample_rate / thefreq))
-        p1, success = optimize.leastsq(errfunc, p0[:], args=(self.data[0:fit_le, 0], self.data[0:fit_le, int(posref)]))
-        self.phasemin = p1 * 180 / pi
+        fit_le = int(zp * round(sample_rate / thefreq))
+        p1, success = optimize.leastsq(errfunc, p0[:], args=(data[0:fit_le, 0], data[0:fit_le, int(posref)]))
+        phasemin = p1 * 180 / pi
 
-        phase_ref[:] = self.amplitude[j] * cos(2 * pi * thefreq * self.data[:, 0] + self.phasemin[j] * pi / 180 + self.dephase * pi / 180)
-        self.sig_out[:, 2 * j] = phase_ref[:] * self.data[:, self.coldata[j]]
-        self.sig_out[:, 2 * j] = self.data_lpass(self.sig_out[:, 2 * j], self.cutoff, self.sample_rate)
+        phase_ref[:] = amplitude[j] * cos(2 * pi * thefreq * data[:, 0] + phasemin[j] * pi / 180 + dephase * pi / 180)
+        sig_out[:, 2 * j] = phase_ref[:] * data[:, coldata[j]]
+        sig_out[:, 2 * j] = data_lpass(sig_out[:, 2 * j], cutoff, sample_rate)
 
-        antiphase_ref[:] = -self.amplitude[j] * sin(2 * pi * thefreq * self.data[:, 0] + self.phasemin[j] * pi / 180 + self.dephase * pi / 180)
-        self.sig_out[:, 2 * j + 1] = antiphase_ref[:] * self.data[:, self.coldata[j]]
-        self.sig_out[:, 2 * j + 1] = self.data_lpass(self.sig_out[:, 2 * j + 1], self.cutoff, self.sample_rate)
+        antiphase_ref[:] = -amplitude[j] * sin(2 * pi * thefreq * data[:, 0] + phasemin[j] * pi / 180 + dephase * pi / 180)
+        sig_out[:, 2 * j + 1] = antiphase_ref[:] * data[:, coldata[j]]
+        sig_out[:, 2 * j + 1] = data_lpass(sig_out[:, 2 * j + 1], cutoff, sample_rate)
 
 
 if __name__ == '__main__':
     sample_rate = 500E3
-    NSamples = 600000
+    NSamples = 3000000
     data = zeros((NSamples, 5))
     data[:, 0] = arange(0, NSamples) / sample_rate
-    FreqsTest = linspace(1000, 20000, num=5)
-    res = zeros(len(FreqsTest))
-    for index, FreqRef in enumerate(FreqsTest):
-        data[:, 1] = sin(data[:, 0] * FreqRef * 2 * pi)
-        res[index] = FindRefFreq(data[:, 1], sample_rate)
-    print res
+    FreqRef = 1000.123
+    data[:, 1] = sin(data[:, 0] * FreqRef * 2 * pi)
+    print FindRefFreq(data[:, 1], sample_rate)-FreqRef
+

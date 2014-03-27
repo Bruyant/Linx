@@ -1,0 +1,5 @@
+for f in $FILES
+do
+    # auto pep8 correction
+    python /opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/autopep8.py --in-place --ignore=E309,E501,W293 $f
+done
