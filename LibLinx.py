@@ -53,7 +53,7 @@ def FindRefFreq(Data, SampleRate):
 
     # Select only first part of the signal
     # TODO calculate the good forrier length with respect to the detected freq
-    fourier_lenght = 16084 / 2
+    fourier_lenght = 16084 / 2   
 
     Data = Data[0:fourier_lenght]
     time = time[0:fourier_lenght]
