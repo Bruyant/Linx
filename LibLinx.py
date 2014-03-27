@@ -18,7 +18,7 @@ import logging
 logging.basicConfig(filename='LibLinx.log', level=logging.DEBUG)
 
 #setup tolerences
-deltaf_Tol=0.0002
+deltaf_Tol = 0.0002
 
 def FindRefFreq(Data, SampleRate):
     """
@@ -51,26 +51,29 @@ def FindRefFreq(Data, SampleRate):
     deltaf = (freqs[2]-freqs[1])/1000
 
     # Select only first part of the signal
-    #TODO to be supressed from this function
-    fourier_lenght = 16084
+    #TODO calculate the good forrier length with respect to the detected freq
+    fourier_lenght = 16084/2
 
+    Data=Data[0:fourier_lenght]
+    time=time[0:fourier_lenght]
+    
     F = zeros(3)
     #Calculate prefactor
-    expon = -2j*pi*time[0:fourier_lenght]
+    expon = -2j*pi*time
 
     #Calculate DFT for 3 point around the approx maximum
-    F[1] = abs(trapz(Data[0:fourier_lenght]*exp(expon*freq),
+    F[1] = abs(trapz(Data*exp(expon*freq),
                      dx=1/SampleRate))
-    F[2] = abs(trapz(Data[0:fourier_lenght]*exp(expon*(freq+deltaf)),
+    F[2] = abs(trapz(Data*exp(expon*(freq+deltaf)),
                      dx=1/SampleRate))
-    F[0] = abs(trapz(Data[0:fourier_lenght]*exp(expon*(freq-deltaf)),
+    F[0] = abs(trapz(Data*exp(expon*(freq-deltaf)),
                      dx=1/SampleRate))
 
     #optimize the frequency to maximize the DFT
     if F[2] > F[1]:
         essaimax = F[1]
         while abs(deltaf) > deltaf_Tol:
-            F[2] = abs(trapz(Data[0:fourier_lenght]*exp(expon*(freq+deltaf)),
+            F[2] = abs(trapz(Data*exp(expon*(freq+deltaf)),
                        dx=1/SampleRate))
             if F[2] > essaimax:
                 essaimax = F[2]
@@ -82,7 +85,7 @@ def FindRefFreq(Data, SampleRate):
         essaimax = F[1]
 
         while abs(deltaf) > deltaf_Tol:
-            F[0] = abs(trapz(Data[0:fourier_lenght]*exp(expon*(freq+deltaf)),
+            F[0] = abs(trapz(Data*exp(expon*(freq+deltaf)),
                        dx=1/SampleRate))
             if F[0] > essaimax:
                 essaimax = F[0]
