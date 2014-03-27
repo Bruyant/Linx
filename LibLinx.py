@@ -49,7 +49,7 @@ def FindRefFreq(Data, SampleRate):
     freq = freqs[posj]
 
     # Determine the freq spacing of the FFT to take 1/1000 as a deltaf
-    deltaf = (freqs[2] - freqs[1]) / 1000
+    deltaf = (freqs[2] - freqs[1]) / 1000    
 
     # Select only first part of the signal
     # TODO calculate the good forrier length with respect to the detected freq
