@@ -95,7 +95,7 @@ def FindRefFreq(Data, SampleRate):
     else:
         logging.debug("strange case where F[0]>F[1]>F[2] and deltaf is %f", deltaf)
 
-    logging.info('Detected frequency is %f Hz' , freq)
+    logging.info('Detected frequency is %f Hz', freq)
     return freq
 
 
