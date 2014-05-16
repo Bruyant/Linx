@@ -29,36 +29,50 @@ from scipy.integrate import trapz, cumtrapz
 from scipy.fftpack import fftfreq
 
 from scipy.signal import buttord, ellipord, cheb1ord, ellip, cheby1, filtfilt
-from modified_filter import butter # error free scipy butter
-from LibLinx import FindRefFreq 
+from modified_filter import butter  # error free scipy butter
+from LibLinx import FindRefFreq
 
-import PyQt4.Qwt5 as Qwt 
+import PyQt4.Qwt5 as Qwt
 from PyQt4.QtCore import Qt,  SIGNAL
 from PyQt4.QtGui import QApplication,  QMainWindow,  QPen,  QFileDialog
+
 
 class switch(object):
     ''' Switch/case like class '''
     def __init__(self, value):
-        self.value  =  value
-        self.fall  =  False
+        self.value = value
+        self.fall = False
 
     def __iter__(self):
         yield self.match
         raise StopIteration
-    
+
     def match(self, *args):
         if self.fall or not args:
             return True
         elif self.value in args:
-            self.fall  =  True
+            self.fall = True
             return True
         else:
             return False
-        
-class Numlockin_Window(QMainWindow, Ui_MainWindow):
-    ''' Global definition of window and functions '''
+
+
+
+class Numlockin_Window(QMainWindow, Ui_MainWindow): 
+    '''
+
+    Action
+    ==========
+        Global definition of the window class and functions
+
+    '''
     def __init__(self):
-        ''' Initialization of GUI '''
+        ''' 
+        Action
+        ==========
+            Initialization of the GUI 
+        
+        '''
         QMainWindow.__init__(self)
         Ui_MainWindow.__init__(self)
         self.setupUi(self)
@@ -235,7 +249,13 @@ class Numlockin_Window(QMainWindow, Ui_MainWindow):
         self.zoomer_4.setRubberBandPen(QPen(Qt.black))
 
     def f_loadconfig(self):
-        ''' Open configuration file, modify every field accordingly '''
+        '''         
+            
+        Action
+        ==========
+            Open configuration file, modify every field accordingly 
+        
+        '''
         inputfile = QFileDialog.getOpenFileName(self, "Open Configuration File", self.outputdir)
         if inputfile!= '':
             finput = open(str(inputfile), 'r')
@@ -325,7 +345,17 @@ class Numlockin_Window(QMainWindow, Ui_MainWindow):
             self.UI_cutoffHz()
              
     def f_saveconfig(self,*args):
-        ''' Save configuration file based on current GUI status '''
+        ''' 
+        
+        Parameters
+        ==========
+            ....
+            
+        Action
+        ==========
+            Save configuration file based on current GUI status 
+        
+        '''
         if len(args)==0:
             inputfile = QFileDialog.getSaveFileName(self, "Save Configuration File",self.outputdir)
         else:
@@ -402,7 +432,18 @@ class Numlockin_Window(QMainWindow, Ui_MainWindow):
             del inputfile
 
     def f_load_data(self, inputfile):
-        ''' Load data from user file '''
+        ''' 
+        
+        Parameters
+        ==========
+            input filename
+            
+        Action
+        ==========        
+            Load data from user file
+            Detect references frequency
+        
+        '''
         if inputfile!= '':
             self.inputdir = inputfile
             if self.outputdir=='':
@@ -442,6 +483,7 @@ class Numlockin_Window(QMainWindow, Ui_MainWindow):
             # On crée le tableau de données reformaté
             del self.data
             self.data = zeros((len(self.temp[:, 1]), len(self.coldatai)+len(self.colrefi)+3))
+            
             # La première colonne contient les infos de temps
             for i in range(0, len(self.temp[:, 1])):
                 self.data[i, 0] = i/self.sample_rate
@@ -455,11 +497,13 @@ class Numlockin_Window(QMainWindow, Ui_MainWindow):
             self.colref = self.colrefi
             self.freq = zeros(len(self.colref))
             for i in range(0, len(self.colref)):
+                # substract mean value
                 self.data[:, i+2] = self.temp[:, self.colref[i]-1]-mean(self.temp[:, self.colref[i]-1])
                 self.colref[i] = i+2
-            #self.freq[i] = FindRefFreq(data[:, self.colref[i]]),self.sample_rate)
+                
                 #TODO fully test the next line
                 # find the reference frequency
+                #self.freq[i] = FindRefFreq(data[:, self.colref[i]]),self.sample_rate)
                 self.freq[i] = FindRefFreq(self.data[:, self.colref[i]],self.sample_rate)
                             
             # Les len(self.coldata)    colonnes suivantes contiennent les données        
@@ -471,13 +515,15 @@ class Numlockin_Window(QMainWindow, Ui_MainWindow):
             self.phasemini = zeros(len(self.coldata))
         
             
-            #TODO Calculation of the field
-            # Enfin la dernière colonne contient le champ intégré
+            #TODO Calculation of the field in a function
+            # Enfin la dernière colone contient le champ intégré
             self.data[1:, 2+len(self.coldata)+len(self.colref)] = cumtrapz(self.data[:, 1], self.data[:, 0])
             self.data[1:, 2+len(self.coldata)+len(self.colref)] = abs(self.data[1:, 2+len(self.coldata)+len(self.colref)])
 
             self.f_max = abs(self.data[1:, 2+len(self.coldata)+len(self.colref)]).argmax()
             B_max = abs(self.data[self.f_max, 2+len(self.coldata)+len(self.colref)]/self.pu_area)
+            
+            # test if the max field is < 200T            
             if B_max<200:
                 self.f_start = 1
                 self.f_stop = len(self.data[:, 0])
@@ -486,6 +532,7 @@ class Numlockin_Window(QMainWindow, Ui_MainWindow):
                     if abs(mean(self.data[i*100:i*100+99, 2+len(self.coldata)+len(self.colref)]))>1e-3*self.data[self.f_max, 2+len(self.coldata)+len(self.colref)]:
                         self.f_start = (i-1)*100
                         break
+                    
                 for i in range(int(self.f_max/100+10), int(floor(len(self.data[:, 1])/100))):
                     if abs(mean(self.data[i*100:i*100+99, 2+len(self.coldata)+len(self.colref)]))<1e-3*self.data[self.f_max, 2+len(self.coldata)+len(self.colref)]:
                         self.f_stop = (i+3)*100
@@ -508,9 +555,12 @@ class Numlockin_Window(QMainWindow, Ui_MainWindow):
         
             
             #cProfile.runctx('self.data_analyze()', globals(), locals(), 'essai.lprof')
+            
             #TODO put these functions into the lib            
             self.data_analyze()
+            
             self.plot_analyzed()
+            
             self.plot_raw()
             
             if B_max<0.5:
@@ -519,6 +569,9 @@ class Numlockin_Window(QMainWindow, Ui_MainWindow):
                 self.label_23.setText(str(inputfile))
         else:
             self.label_23.setText('Please select a data file')
+            
+            
+            
 
     def f_loadfile(self):
         if self.data_loaded == 0:
@@ -894,7 +947,6 @@ class Numlockin_Window(QMainWindow, Ui_MainWindow):
             self.sig_out[:, 2*j] = phase_ref[:]*self.data[:, self.coldata[j]]
             self.sig_out[:, 2*j] = self.data_lpass(self.sig_out[:, 2*j], self.cutoff, self.sample_rate)
     
-    def data_lpass(self, x, Wp, srate):
         ''' Low-pass filter using various filter type '''
         tempstring = self.lineEdit_16.text()
         
