@@ -24,11 +24,11 @@ deltaf_Tol = 0.0002
 # test bench init and closing
 def setup():
     logging.basicConfig(filename='LibLinx_test.log', level=logging.DEBUG)
-    print "Setup Done!"
+    print("Setup Done!")
 
 
 def teardown():
-    print "TEAR DOWN!"
+    print("TEAR DOWN!")
 
 
 #  Helpers functions
@@ -103,8 +103,8 @@ def test_FindRefFreqMultiple():
 
 def test_FindRefFreqRandom():
     # add some randomness to improve coverage
-    FreqRef = (12345 + random() * 50E3 for r in xrange(20))
-    sample_rate = (250E3 + random() * 250E3 for r in xrange(5))
+    FreqRef = (12345 + random() * 50E3 for r in range(20))
+    sample_rate = (250E3 + random() * 250E3 for r in range(5))
     NSamples = (100000, 90000)
     caseslists = [FreqRef,
                   sample_rate,

@@ -30,7 +30,11 @@ from scipy.fftpack import fftfreq
 
 from scipy.signal import buttord, ellipord, cheb1ord, ellip, cheby1, filtfilt
 from modified_filter import butter  # error free scipy butter
-from LibLinx import FindRefFreq
+
+# TODO make a cleaner import
+from LibLinx import *
+
+
 
 import PyQt4.Qwt5 as Qwt
 from PyQt4.QtCore import Qt,  SIGNAL
@@ -931,7 +935,7 @@ class Numlockin_Window(QMainWindow, Ui_MainWindow):
         antiphase_ref = zeros(len(self.data[:, 2]))
         self.sig_out = zeros((len(self.data[:, 2]), len(self.coldata)*2))
         
-        for j in xrange(0, len(self.coldata)):
+        for j in range(0, len(self.coldata)):
             if len(self.colref) == 1:
                 thefreq = self.freq[0]
                 posref = self.colref

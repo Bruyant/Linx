@@ -60,7 +60,7 @@ class TestFindRefFreqSamplerateRandom(TestFindRefFreq):
         self.sample_rate=200E3+random.randint(0,3E5)
         self.data=GenerateRefSignal(54321,self.sample_rate)
         self.res=FindRefFreq(self.data[:,1],self.sample_rate)
-        print self.res,self.sample_rate
+        print(self.res,self.sample_rate)
         self.assertTrue(ComputeError(54321,self.res)<tolerance)
 
 

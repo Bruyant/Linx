@@ -208,7 +208,7 @@ if __name__ == '__main__':
     RefData= sin(data[:, 0] * FreqRef * 2 * pi)
     thefreq=FindRefFreq(RefData, sample_rate)
     print("frequency error")
-    print(thefreq-FreqRef)
+    print((thefreq-FreqRef))
     # test of demodultion
     #signal creation
     ModAmp=(1 + 0.1 * abs(sin(data[:, 0] * 20 * 2 * pi)))
