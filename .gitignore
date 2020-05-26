@@ -38,3 +38,5 @@ nosetests.xml
 *.log
 
 LibLinx_test.py
+.DS_Store
+*.bak

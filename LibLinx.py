@@ -14,8 +14,8 @@ from scipy.integrate import trapz, cumtrapz
 from scipy.fftpack import fftfreq
 from scipy.signal import resample
 
-from scipy.signal import buttord, ellipord, cheb1ord, ellip, cheby1, filtfilt
-from modified_filter import butter  # error free scipy butter
+from scipy.signal import buttord, ellipord, cheb1ord, ellip, cheby1, filtfilt, butter
+# from modified_filter import butter  # error free scipy butter
 
 import logging
 
@@ -124,8 +124,7 @@ def data_analyze(data, RefData, thefreq, SampleRate, cutoff=None,
     '''
     detection of the lock-in signal with a reconstructed reference signal
 
-    Parameters
-    ==========
+    Parameters :
         data: 1D np array
         freq: carrier detected frequency
         SampleRate: sample rate in Hertz
@@ -133,8 +132,7 @@ def data_analyze(data, RefData, thefreq, SampleRate, cutoff=None,
         Phase_accuracy = 2
         dephase = 0 manual dephasing correction
 
-    Returns
-    =======
+    Returns :
         sig_out: 2D np array demodulated signal in phase and out-of-phase
     '''
     datalen = len(data)
@@ -204,7 +202,7 @@ if __name__ == '__main__':
     NSamples = 3000000
     data = zeros((NSamples, 2))
     data[:, 0] = arange(0, NSamples) / sample_rate
-    FreqRef = 12345.678901
+    FreqRef = 12345.678905
     RefData= sin(data[:, 0] * FreqRef * 2 * pi)
     thefreq=FindRefFreq(RefData, sample_rate)
     print("frequency error")
@@ -212,10 +210,12 @@ if __name__ == '__main__':
     # test of demodultion
     #signal creation
     ModAmp=(1 + 0.1 * abs(sin(data[:, 0] * 20 * 2 * pi)))
-    data[:, 1] = ModAmp * sin(data[:, 0] * FreqRef * 2 * pi)
+    data[:, 1] = ModAmp * sin(data[:, 0] * FreqRef * 2 * pi+1)
     #plot(data[1:10000, 0], data[1:10000, 1])
     
-    res=data_analyze(data[:,1], RefData, thefreq, sample_rate)
+    res=data_analyze(data[:,1], RefData, FreqRef, sample_rate)
     
     from pylab import plot
-    plot(res[1:50E3, 0])
+    idxmax=int(50E3)
+    plot(res[1:idxmax, 0])
+    plot(ModAmp[:idxmax]/2)
